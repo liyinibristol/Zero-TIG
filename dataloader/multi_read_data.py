@@ -105,7 +105,7 @@ class RLVDataLoader(BaseDataset):
             phase_list = file.readlines()
             assert len(phase_list) > 0, "No input data."
 
-        for folder_name in phase_list[:1]:
+        for folder_name in phase_list:
             folder_name = folder_name.strip()
             # train_ll_10_list = glob.glob(os.path.join(dir, 'input', folder_name, ll_10_dir_name, "*.png"))
             # train_ll_20_list = glob.glob(os.path.join(dir, 'input', folder_name, ll_20_dir_name, "*.png"))
@@ -172,7 +172,7 @@ class DidDataloader(BaseDataset):
             phase_list = file.readlines()
             assert len(phase_list) > 0, "No input data."
 
-        for folder_name in phase_list[:1]:
+        for folder_name in phase_list:
             folder_name = folder_name.strip()
             train_ll_list = glob.glob(os.path.join(dir, 'input', folder_name, "*.jpg"))
             train_ll_list.extend(glob.glob(os.path.join(dir, 'input', folder_name, "*.png")))
