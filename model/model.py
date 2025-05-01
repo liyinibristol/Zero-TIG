@@ -238,19 +238,25 @@ class Network(nn.Module):
 
         # 2. OF last->this
         # last_H3_tmp, L2_tmp = self.padder.pad(last_H3_tmp, L2_tmp) # [640, 360]
-        _, flow_up = self.raft(last_H3_tmp, L2_tmp, iters=20, test_mode=True)
-        # viz(last_H3_tmp, flow_up)
+        _, flow_b = self.raft(L2_tmp, last_H3_tmp, iters=20, test_mode=True)
+        # if self.get_occ_mask:
+        #     _, flow_f = self.raft(last_H3_tmp, L2_tmp, iters=20, test_mode=True)
+        #     flow_f_up = F.interpolate(flow_f, scale_factor=self.of_scale, mode='bilinear', align_corners=False)
+        #     flow_b_up = F.interpolate(flow_b, scale_factor=self.of_scale, mode='bilinear', align_corners=False)
+        #     _, bwd_occ = forward_backward_consistency_check(flow_f_up, flow_b_up)
+        #     self.bwd_occ = 1 - bwd_occ
+        # viz(last_H3_tmp, flow_b)
 
         # 3. Warp
-        warped_tensor_H3, overlap_tensor = warp_tensor(flow_up, last_H3, L2)
-        warped_tensor_s3, _ = warp_tensor(flow_up, last_s3, L2)
-        # warped_img = self.cvt_ts2np(warped_tensor)
+        warped_tensor_H3, overlap_tensor = warp_tensor(flow_b, last_H3, L2)
+        warped_tensor_s3, _ = warp_tensor(flow_b, last_s3, L2)
+        # warped_img = cv2.cvtColor(self.cvt_ts2np(warped_tensor_H3),cv2.COLOR_BGR2RGB)
         # overlap_img = self.cvt_ts2np(overlap_tensor)
         #
         # img_flo = cv2.resize(np.concatenate([warped_img, overlap_img], axis=0), (1920, 2160))
         # cv2.imshow('image', img_flo)
         # cv2.waitKey(5)
-        # cv2.imwrite('./img_flo.png', (img_flo*255).astype(np.uint8))
+        # cv2.imwrite('./img_flo.png', (warped_img*255).astype(np.uint8))
 
         return warped_tensor_H3, warped_tensor_s3
 
@@ -325,9 +331,9 @@ class Finetunemodel(nn.Module):
         H2 = input / s2
         H2 = torch.clamp(H2, eps, 1)
 
-        if self.is_new_seq:
-            self.last_H3_wp = H2.detach()
-            self.last_s3_wp = H2.detach()
+        # if self.is_new_seq:
+        #     self.last_H3_wp = H2.detach()
+        #     self.last_s3_wp = H2.detach()
 
         H5_pred = torch.cat([H2, s2], 1).detach() - self.denoise_2(torch.cat([self.last_H3_wp, self.last_s3_wp, H2, s2], 1))
         H5_pred = torch.clamp(H5_pred, eps, 1)
@@ -359,7 +365,7 @@ class Finetunemodel(nn.Module):
 
         # 2. OF last->this
         # last_H3_tmp, L2_tmp = self.padder.pad(last_H3_tmp, L2_tmp) # [640, 360]
-        _, flow_up = self.raft(last_H3_tmp, L2_tmp, iters=20, test_mode=True)
+        _, flow_up = self.raft(L2_tmp, last_H3_tmp, iters=20, test_mode=True)
         # viz(last_H3_tmp, flow_up)
 
         # 3. Warp

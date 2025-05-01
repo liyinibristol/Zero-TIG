@@ -200,7 +200,7 @@ def warp_img(flow, img1, img2, dst_size=[1080, 1920]):
     return warped_image, overlap_image
 
 
-def warp_tensor(flow, img1, img2):
+def warp_tensor(flow, img1, img2=None):
     B, C, H, W = flow.shape
     h_dst, w_dst = img1.shape[-2:]
     h_scale = float(h_dst) / float(H)
@@ -212,8 +212,8 @@ def warp_tensor(flow, img1, img2):
     grid_y = grid_y.unsqueeze(0).expand(B, -1, -1).to(img1.device)  # [B, H, W]
 
     # 计算新的坐标
-    map_x = (grid_x - flow[:,0,:,:]) * h_scale
-    map_y = (grid_y - flow[:,1,:,:]) * w_scale
+    map_x = (grid_x + flow[:,0,:,:]) * h_scale
+    map_y = (grid_y + flow[:,1,:,:]) * w_scale
     map_x = F.interpolate(map_x.unsqueeze(1), (h_dst, w_dst), mode='bilinear')
     map_y = F.interpolate(map_y.unsqueeze(1), (h_dst, w_dst), mode='bilinear')
 
@@ -224,8 +224,11 @@ def warp_tensor(flow, img1, img2):
     # 对图像进行采样
     warped_tensor = F.grid_sample(img1, grid, mode='bilinear', padding_mode='zeros')
 
-    # 重叠图像
-    overlap_tensor = 0.5 * warped_tensor + 0.5 * img2  # 计算重叠图像
+    if img2 is not None:
+        # 重叠图像
+        overlap_tensor = 0.5 * warped_tensor + 0.5 * img2  # 计算重叠图像
+    else:
+        overlap_tensor = None
 
     return warped_tensor, overlap_tensor
 

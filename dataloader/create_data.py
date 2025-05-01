@@ -8,6 +8,8 @@ def CreateDataset(args, task):
         dataset = RLVDataLoader()
     elif 'DID' == args.dataset:
         dataset = DidDataloader()
+    elif 'SDSD' == args.dataset:
+        dataset = SDSDDataloader()
     else:
         dataset = DefaultDataset()
 
